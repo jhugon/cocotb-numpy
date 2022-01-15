@@ -1,4 +1,5 @@
 from cocotbnumpy.signal import NumpySignal
+import numpy as np
 
 
 def test_NumpySignal_basics():
@@ -24,12 +25,20 @@ def test_NumpySignal_basics():
     assert s1[5] != s2[5]
     assert s1 != s2
 
+    ## Just checking some random other type
+    assert s1 != "xxx"
+
 
 def test_NumpySignal_masks():
     in1 = [0, 1, 0, 1, 0, 1]
     in2 = [1, 0, 0, 1, 0, 1]
     s1 = NumpySignal(in1, [1, 1])
     s2 = NumpySignal(in2)
+
+    in1str = "- - 0 1 0 1"
+    assert str(s1) == in1str
+    assert repr(s1) == f"NumpySignal({in1},[1, 1, 0, 0, 0, 0])"
+
     for i in range(len(in1)):
         if i < 2:
             assert s1[i] != in2[i]

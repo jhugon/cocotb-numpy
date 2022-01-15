@@ -28,10 +28,10 @@ class NumpySignal:
         waveform = np.array(waveform)
         if dontcaremask is None:
             dontcaremask = np.zeros(waveform.size, dtype=np.uint8)
-        dontcaremask = np.array(dontcaremask)
+        dontcaremask = np.array(dontcaremask, dtype=np.uint8)
 
         if len(waveform) > len(dontcaremask):
-            tmp = np.zeros(waveform.size)
+            tmp = np.zeros(waveform.size, dtype=np.uint8)
             tmp[: len(dontcaremask)] = dontcaremask
             dontcaremask = tmp
 
@@ -53,9 +53,7 @@ class NumpySignal:
         return result
 
     def __repr__(self):
-        return (
-            f"NumpySignal({list(self.waveform)},dontcaremask={list(self.dontcaremask)})"
-        )
+        return f"NumpySignal({list(self.waveform)},{list(self.dontcaremask)})"
 
     def get_max_str_width(self):
         l = list(self.waveform)
