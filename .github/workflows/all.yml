@@ -11,27 +11,6 @@ on:
     branches: [ master ]
 
 jobs:
-
-  #python-mypy:
-  #  runs-on: ubuntu-latest
-  #  defaults:
-  #    run:
-  #      working-directory: python
-  #  steps:
-  #  - uses: actions/checkout@v2
-  #  - name: Set up Python 3.9
-  #    uses: actions/setup-python@v2
-  #    with:
-  #      python-version: 3.9
-  #  - name: Install dependencies
-  #    run: |
-  #      python -m pip install --upgrade pip
-  #      pip install mypy
-  #      pip install .
-  #  - name: Static Analysis with mypy
-  #    run: |
-  #      mypy cocotbnumpy tests
-
   python-unittest:
     strategy:
       matrix:
@@ -57,3 +36,23 @@ jobs:
     - name: Python coverage report
       run: |
         coverage report
+
+  #python-mypy:
+  #  runs-on: ubuntu-latest
+  #  defaults:
+  #    run:
+  #      working-directory: python
+  #  steps:
+  #  - uses: actions/checkout@v2
+  #  - name: Set up Python 3.9
+  #    uses: actions/setup-python@v2
+  #    with:
+  #      python-version: 3.9
+  #  - name: Install dependencies
+  #    run: |
+  #      python -m pip install --upgrade pip
+  #      pip install mypy
+  #      pip install .
+  #  - name: Static Analysis with mypy
+  #    run: |
+  #      mypy cocotbnumpy tests
