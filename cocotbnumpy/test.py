@@ -17,7 +17,7 @@ class NumpyTest:
         # defines self.sig_len
         self._get_and_check_lengths(self)
 
-    async def run(self):
+    async def run(self, verbose=False):
         self.obs_dict = {}
         for exp_key in self.expected_dict:
             self.obs_dict[exp_key] = NumpySignal(np.zeros(self.sig_len))
@@ -30,6 +30,9 @@ class NumpyTest:
                 self.set_sig_val(sig_key, self.in_dict[sig_key][iClock])
             await FallingEdge(self.clock_sig)
         ## Done running, now to just check obs vs exp
+        if verbose:
+            self.dut._log.info("\n" + self.get_waveform_horiz_str())
+            self.dut._log.info("\n" + self.get_waveform_vert_str())
         fail_keys = []
         for exp_key in self.expected_dict:
             exp = self.expected_dict[exp_key]
@@ -77,7 +80,7 @@ class NumpyTest:
                 except AttributeError:
                     self.sig_len = n
 
-    def get_waveform_listing_string(self):
+    def get_waveform_vert_str(self):
         clock_width = max(len(str(self.sig_len)), 4)
         result = ("{:" + str(clock_width) + "}").format("iClk")
         in_widths = []
@@ -85,19 +88,57 @@ class NumpyTest:
             width = self.in_dict[key].get_max_str_width()
             width = max(len(key), width)
             in_widths.append(width)
-            result += (" {" + str(width) + "}").format(key)
+            result += (" {:>" + str(width) + "}").format(key)
         obs_widths = []
         for key in sorted(self.obs_dict):
             width = self.obs_dict[key].get_max_str_width()
             width = max(len(key), width)
             obs_widths.append(width)
-            result += (" {" + str(width) + "}").format(key)
+            result += (" {:>" + str(width) + "}").format(key)
         result += "\n"
         for iClock in range(self.sig_len):
             result += ("{:" + str(clock_width) + "}").format(iClock)
             for key, width in zip(sorted(self.in_dict), in_widths):
-                result += (" {" + str(width) + "}").format(self.in_dict[key][iClock])
+                result += (" {:>" + str(width) + "}").format(self.in_dict[key][iClock])
             for key, width in zip(sorted(self.obs_dict), obs_widths):
-                result += (" {" + str(width) + "}").format(self.obs_dict[key][iClock])
+                result += (" {:>" + str(width) + "}").format(self.obs_dict[key][iClock])
             result += "\n"
+        return result
+
+    def get_waveform_horiz_str(self):
+        clock_width = len(str(self.sig_len))
+        clock_key = "iClk"
+        max_key_width = len(clock_key)
+        max_key_width = max(max_key_width, 4)
+        max_val_width = clock_width
+        for key in self.in_dict:
+            max_key_width = max(max_key_width, len(key))
+            max_val_width = max(max_val_width, self.in_dict[key].get_max_str_width())
+        for key in self.expected_dict:
+            max_key_width = max(max_key_width, len(key))
+            max_val_width = max(
+                max_val_width, self.expected_dict[key].get_max_str_width()
+            )
+            max_val_width = max(max_val_width, self.obs_dict[key].get_max_str_width())
+        key_fmt_str = "{:" + str(max_key_width) + "}:"
+        val_fmt_str = " {:>" + str(max_val_width) + "}"
+        result = key_fmt_str.format(clock_key)
+        for iClk in range(self.sig_len):
+            result += val_fmt_str.format(iClk)
+        result += "\n"
+        for key in self.in_dict:
+            result += key_fmt_str.format(key)
+            for iClk in range(self.sig_len):
+                result += val_fmt_str.format(self.in_dict[key][iClk])
+            result += "\n"
+        for key in self.obs_dict:
+            result += key_fmt_str.format(key)
+            for iClk in range(self.sig_len):
+                result += val_fmt_str.format(self.obs_dict[key][iClk])
+            result += "\n"
+            if self.expected_dict[key] != self.obs_dict[key]:
+                result += key_fmt_str.format(" exp")
+                for iClk in range(self.sig_len):
+                    result += val_fmt_str.format(self.expected_dict[key][iClk])
+                result += "\n"
         return result

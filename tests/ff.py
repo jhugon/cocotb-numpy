@@ -14,4 +14,4 @@ async def NumpyTest_basics(dut):
         # "sig_out": [0, 0, 1, 0, 1, 0, 1, 0, 0, 0],
     }
     nptest = NumpyTest(dut, in_sigs, exp_sigs, "clock")
-    await nptest.run()
+    await nptest.run(True)
