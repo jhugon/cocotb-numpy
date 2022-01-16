@@ -14,8 +14,11 @@ jobs:
   python-unittest:
     strategy:
       matrix:
-        pythonversion: ["3.7","3.8","3.9","3.10"]
+        pythonversion: ["3.8","3.9","3.10"]
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.pythonversion }}
@@ -24,15 +27,13 @@ jobs:
         python-version: ${{ matrix.pythonversion }}
     - name: Install dependencies
       run: |
+        sudo apt-get install make gcc g++ ghdl-llvm
         python -m pip install --upgrade pip
-        pip install coverage pytest
-        pip install .
+        pip install pytest
+        pip install ..
     - name: Python unittest
       run: |
-        coverage run --source=cocotbnumpy -m pytest
-    - name: Python coverage report
-      run: |
-        coverage report
+        pytest
 
   #python-mypy:
   #  runs-on: ubuntu-latest

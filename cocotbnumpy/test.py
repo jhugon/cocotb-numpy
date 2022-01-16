@@ -7,34 +7,51 @@ import numpy as np
 
 class NumpyTest:
     def __init__(self, dut, in_dict, expected_dict, clock_name):
+        self.dut = dut
         self.in_dict = self._convert_dict_to_npsigs(in_dict)
         self.expected_dict = self._convert_dict_to_npsigs(expected_dict)
         self.obs_dict = None
         self.clock_name = clock_name
-        self.clock_sig = getattr(clock, clock_name)
+        self.clock_sig = self.get_signal(clock_name)
 
         # defines self.sig_len
         self._get_and_check_lengths(self)
 
-        self.dut = dut
-
     async def run(self):
         self.obs_dict = {}
         for exp_key in self.expected_dict:
-            self.obs_dict[exp_key] = np.zeros(self.sig_len)
+            self.obs_dict[exp_key] = NumpySignal(np.zeros(self.sig_len))
         cocotb.start_soon(Clock(self.clock_sig, 10, units="ns").start())
         for iClock in range(self.sig_len):
             for obs_key in self.obs_dict:
-                obs_val = self.dut.get_sig_val(obs_key)
+                obs_val = self.get_sig_val(obs_key)
                 self.obs_dict[obs_key][iClock] = obs_val
             for sig_key in self.in_dict:
-                self.dut.set_sig_val(sig_key, self.in_dict[sig_key])
+                self.set_sig_val(sig_key, self.in_dict[sig_key][iClock])
             await FallingEdge(self.clock_sig)
         ## Done running, now to just check obs vs exp
+        fail_keys = []
         for exp_key in self.expected_dict:
             exp = self.expected_dict[exp_key]
             obs = self.obs_dict[exp_key]
-            assert exp == obs
+            if exp != obs:
+                fail_keys.append(exp_key)
+        if len(fail_keys) != 0:
+            for key in fail_keys:
+                self.dut._log.error(f"observed signal didn't match expectation: {key}")
+                self.dut._log.info(f"obs: {self.obs_dict[key]}")
+                self.dut._log.info(f"exp: {self.expected_dict[key]}")
+        assert len(fail_keys) == 0
+
+    def get_signal(self, signame):
+        return getattr(self.dut, signame)
+
+    def get_sig_val(self, signame):
+        return self.get_signal(signame).value
+
+    def set_sig_val(self, signame, val):
+        sig = self.get_signal(signame)
+        sig.value = int(val)
 
     def _convert_to_npsig(self, sig):
         if isinstance(sig, NumpySignal):
