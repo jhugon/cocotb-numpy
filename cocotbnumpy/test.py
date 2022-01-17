@@ -22,6 +22,8 @@ class NumpyTest:
         for exp_key in self.expected_dict:
             self.obs_dict[exp_key] = NumpySignal(np.zeros(self.sig_len))
         cocotb.start_soon(Clock(self.clock_sig, 10, units="ns").start())
+        ## Get to first falling edge, then start iClocks
+        await FallingEdge(self.clock_sig)
         for iClock in range(self.sig_len):
             for obs_key in self.obs_dict:
                 obs_val = self.get_sig_val(obs_key)
