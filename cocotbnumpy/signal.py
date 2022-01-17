@@ -26,6 +26,9 @@ class NumpySignal:
 
         The bad mask is for undefined and uncertain values. It will fail an
         equality test unless the dontcaremask stops it.
+
+        The user is encouraged to use the attributes: dontcaremask and badmask,
+        which are arrays of 0/1 of the same length as the main waveform
         """
         flag_type = np.uint8
         waveform_type = np.uint64

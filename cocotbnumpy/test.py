@@ -17,7 +17,7 @@ class NumpyTest:
         # defines self.sig_len
         self._get_and_check_lengths(self)
 
-    async def run(self, verbose=False):
+    async def run(self, verbose=False, show_all_exp=False):
         self.obs_dict = {}
         for exp_key in self.expected_dict:
             self.obs_dict[exp_key] = NumpySignal(np.zeros(self.sig_len))
@@ -30,9 +30,6 @@ class NumpyTest:
                 self.set_sig_val(sig_key, self.in_dict[sig_key][iClock])
             await FallingEdge(self.clock_sig)
         ## Done running, now to just check obs vs exp
-        if verbose:
-            self.dut._log.info("\n" + self.get_waveform_horiz_str())
-            self.dut._log.info("\n" + self.get_waveform_vert_str())
         fail_keys = []
         for exp_key in self.expected_dict:
             exp = self.expected_dict[exp_key]
@@ -44,6 +41,9 @@ class NumpyTest:
                 self.dut._log.error(f"observed signal didn't match expectation: {key}")
                 self.dut._log.info(f"obs: {self.obs_dict[key]}")
                 self.dut._log.info(f"exp: {self.expected_dict[key]}")
+        if verbose or (len(fail_keys) != 0):
+            self.dut._log.info("\n" + self.get_waveform_horiz_str(show_all_exp))
+            self.dut._log.info("\n" + self.get_waveform_vert_str(show_all_exp))
         assert len(fail_keys) == 0
 
     def get_signal(self, signame):
@@ -80,7 +80,7 @@ class NumpyTest:
                 except AttributeError:
                     self.sig_len = n
 
-    def get_waveform_vert_str(self):
+    def get_waveform_vert_str(self, show_all_exp=False):
         clock_width = max(len(str(self.sig_len)), 4)
         result = ("{:" + str(clock_width) + "}").format("iClk")
         in_widths = []
@@ -105,7 +105,7 @@ class NumpyTest:
             result += "\n"
         return result
 
-    def get_waveform_horiz_str(self):
+    def get_waveform_horiz_str(self, show_all_exp=False):
         clock_width = len(str(self.sig_len))
         clock_key = "iClk"
         max_key_width = len(clock_key)
@@ -136,7 +136,7 @@ class NumpyTest:
             for iClk in range(self.sig_len):
                 result += val_fmt_str.format(self.obs_dict[key][iClk])
             result += "\n"
-            if self.expected_dict[key] != self.obs_dict[key]:
+            if (self.expected_dict[key] != self.obs_dict[key]) or show_all_exp:
                 result += key_fmt_str.format(" exp")
                 for iClk in range(self.sig_len):
                     result += val_fmt_str.format(self.expected_dict[key][iClk])
