@@ -3,6 +3,7 @@ from cocotb.triggers import FallingEdge
 from cocotb.clock import Clock
 from .signal import NumpySignal
 import numpy as np
+from colorama import Fore, Style
 
 
 class NumpyTest:
@@ -103,7 +104,22 @@ class NumpyTest:
             for key, width in zip(sorted(self.in_dict), in_widths):
                 result += (" {:>" + str(width) + "}").format(self.in_dict[key][iClock])
             for key, width in zip(sorted(self.obs_dict), obs_widths):
-                result += (" {:>" + str(width) + "}").format(self.obs_dict[key][iClock])
+                if self.expected_dict[key].dontcaremask[iClock]:
+                    result += (
+                        Fore.BLUE
+                        + (" {:>" + str(width) + "}").format(self.obs_dict[key][iClock])
+                        + Style.RESET_ALL
+                    )
+                elif self.expected_dict[key][iClock] != self.obs_dict[key][iClock]:
+                    result += (
+                        Fore.RED
+                        + (" {:>" + str(width) + "}").format(self.obs_dict[key][iClock])
+                        + Style.RESET_ALL
+                    )
+                else:
+                    result += (" {:>" + str(width) + "}").format(
+                        self.obs_dict[key][iClock]
+                    )
             result += "\n"
         return result
 
@@ -136,11 +152,37 @@ class NumpyTest:
         for key in self.obs_dict:
             result += key_fmt_str.format(key)
             for iClk in range(self.sig_len):
-                result += val_fmt_str.format(self.obs_dict[key][iClk])
+                if self.expected_dict[key].dontcaremask[iClk]:
+                    result += (
+                        Fore.BLUE
+                        + val_fmt_str.format(self.obs_dict[key][iClk])
+                        + Style.RESET_ALL
+                    )
+                elif self.expected_dict[key][iClk] != self.obs_dict[key][iClk]:
+                    result += (
+                        Fore.RED
+                        + val_fmt_str.format(self.obs_dict[key][iClk])
+                        + Style.RESET_ALL
+                    )
+                else:
+                    result += val_fmt_str.format(self.obs_dict[key][iClk])
             result += "\n"
             if (self.expected_dict[key] != self.obs_dict[key]) or show_all_exp:
                 result += key_fmt_str.format(" exp")
                 for iClk in range(self.sig_len):
-                    result += val_fmt_str.format(self.expected_dict[key][iClk])
+                    if self.expected_dict[key].dontcaremask[iClk]:
+                        result += (
+                            Fore.BLUE
+                            + val_fmt_str.format(self.expected_dict[key][iClk])
+                            + Style.RESET_ALL
+                        )
+                    elif self.expected_dict[key][iClk] != self.obs_dict[key][iClk]:
+                        result += (
+                            Fore.RED
+                            + val_fmt_str.format(self.expected_dict[key][iClk])
+                            + Style.RESET_ALL
+                        )
+                    else:
+                        result += val_fmt_str.format(self.expected_dict[key][iClk])
                 result += "\n"
         return result
